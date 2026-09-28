@@ -25,11 +25,10 @@ workflows:
           git log -1 --oneline
           git describe --tags --always
           test -f ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'FREE FIRE NORMAL' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'FREE FIRE MAX' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS ALTO' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS BARRIGA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS PESCOÇO' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'MENU TESTE' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
           echo "Source validation passed."
       - name: Clean previous outputs
         script: |
