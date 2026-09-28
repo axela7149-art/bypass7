@@ -90,9 +90,9 @@ workflows:
           mkdir -p artifacts/Payload
           cp -R "$APP_PATH" artifacts/Payload/
           test -f "artifacts/Payload/$(basename "$APP_PATH")/Info.plist"
-          (cd artifacts && zip -qry BYPASS7_PROXY.ipa Payload)
+          (cd artifacts && zip -qry BYPASS7_PROXY_FIXED.ipa Payload)
     artifacts:
-      - artifacts/BYPASS7_PROXY.ipa
+      - artifacts/BYPASS7_PROXY_FIXED.ipa
       - build-clean/Build/Products/**/*.app
       - build-clean/Build/Products/**/*.dSYM
       - clean.log
