@@ -51,18 +51,25 @@ workflows:
           actual = {p.name for p in root.glob('*.3105')}
           if actual != expected:
               raise SystemExit(f'Unexpected patch set: missing={expected-actual}, extra={actual-expected}')
+          package_ids = set()
           for path in sorted(root.glob('*.3105')):
               raw = path.read_bytes()
               magic = b'3105PATCH\0'
               if not raw.startswith(magic):
                   raise SystemExit(f'Bad package signature: {path.name}')
               env = loads(raw[len(magic):])
+              package_id = env.get('packageID')
+              if not isinstance(package_id, str) or package_id in package_ids:
+                  raise SystemExit(f'Missing or duplicate package ID: {path.name} ({package_id})')
+              package_ids.add(package_id)
               if env['isPasswordProtected'] or not (1 <= env['schemaVersion'] <= 3):
                   raise SystemExit(f'Unexpected package version/protection: {path.name}')
               key = env.get('publicContentKey', b'')
               if len(key) != 32 or sha256(key).digest() != env['keyFingerprint']:
                   raise SystemExit(f'Invalid package key fingerprint: {path.name}')
               print(f"validated envelope: {path.name} (schema {env['schemaVersion']})")
+          if len(package_ids) != len(expected):
+              raise SystemExit(f'Expected {len(expected)} unique package IDs, found {len(package_ids)}')
           aimbot = (root / 'TEST NEW AIMBOT V1.3105').read_bytes()
           if len(aimbot) < 28:
               raise SystemExit('Aimbot package is truncated')
