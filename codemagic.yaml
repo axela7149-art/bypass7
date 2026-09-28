@@ -1,6 +1,6 @@
 workflows:
   ios-build:
-    name: BYPASS7 PROXY iOS build
+    name: BYPASS7 3105 v2 iOS build
     instance_type: mac_mini_m2
     environment:
       xcode: latest
@@ -18,7 +18,7 @@ workflows:
           include: true
       cancel_previous_builds: true
     scripts:
-      - name: Validate checkout and source
+      - name: Validate source bundle and patch resources
         script: |
           set -euo pipefail
           echo "=== checkout ==="
@@ -27,33 +27,49 @@ workflows:
             echo "Extracting full source bundle"
             unzip -q -o BYPASS7-PROXY-FULL-SOURCE.zip
           fi
-          git status --short
-          git log -1 --oneline
-          git describe --tags --always
-          test -f ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS GIRAFA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'TEST NEW AIMBOT V1' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq '144 FPS FFTH' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'PATCHES DISPONÍVEIS' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'case .testNewAimbotV1: return true' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'TEST NEW AIMBOT V1' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
-          grep -Fq '144 FPS FFTH' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
-          if grep -Eq 'MENU AIM SILENT TESTE|featureSection\("menu"\)|assemblyLocalConfig|ASSEMBLY \+ LOCAL CONFIG' \
-            ThreeOneOSFive/views/PatchProjectsView.swift \
-            ThreeOneOSFive/helpers/PatchProjectLibrary.swift; then
-            echo "ERROR: removed menu patch is still present" >&2
-            exit 1
-          fi
-          if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|MENU TESTE' \
-            ThreeOneOSFive/ContentView.swift \
-            ThreeOneOSFive/views/PatchProjectsView.swift; then
-            echo "ERROR: removed tabs or features are still present" >&2
-            exit 1
-          fi
-          echo "Source validation passed."
+          test -f ThreeOneOSFive.xcodeproj/project.pbxproj
+          test -f ThreeOneOSFive/App.swift
+          test -f ThreeOneOSFive/AuthenticationViewModel.swift
+          test -f ThreeOneOSFive/views/LoginView.swift
+          test -f ThreeOneOSFive/helpers/PatchPackageCodec.swift
+          grep -Fq 'AuthenticatedRootView(viewModel: authViewModel)' ThreeOneOSFive/App.swift
+          grep -Fq 'seedBundledPatchesIfNeeded' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
+          grep -Fq 'seedBundledPatchesIfNeeded()' ThreeOneOSFive/helpers/PatchProjectStore.swift
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          from plistlib import loads
+          root = Path('ThreeOneOSFive/Resources/OfficialPatches')
+          expected = {
+              'HS CEARENSE.3105',
+              'HS GIRAFA.3105',
+              'HS PESCOÇO + ANTENA.3105',
+              'HS PEITO + ANTENA.3105',
+              'TEST NEW AIMBOT V1.3105',
+              '144 FPS FFTH.3105',
+          }
+          actual = {p.name for p in root.glob('*.3105')}
+          if actual != expected:
+              raise SystemExit(f'Unexpected patch set: missing={expected-actual}, extra={actual-expected}')
+          for path in sorted(root.glob('*.3105')):
+              raw = path.read_bytes()
+              magic = b'3105PATCH\0'
+              if not raw.startswith(magic):
+                  raise SystemExit(f'Bad package signature: {path.name}')
+              env = loads(raw[len(magic):])
+              if env['isPasswordProtected'] or not (1 <= env['schemaVersion'] <= 3):
+                  raise SystemExit(f'Unexpected package version/protection: {path.name}')
+              key = env.get('publicContentKey', b'')
+              if len(key) != 32 or sha256(key).digest() != env['keyFingerprint']:
+                  raise SystemExit(f'Invalid package key fingerprint: {path.name}')
+              print(f"validated envelope: {path.name} (schema {env['schemaVersion']})")
+          aimbot = (root / 'TEST NEW AIMBOT V1.3105').read_bytes()
+          if len(aimbot) < 28:
+              raise SystemExit('Aimbot package is truncated')
+          if (root / 'ASSEMBLY + LOCAL CONFIG.3105').exists():
+              raise SystemExit('Removed Assembly + Local Config package is still bundled')
+          PY
+          echo "Source and patch envelope validation passed."
       - name: Clean previous outputs
         script: |
           set -euo pipefail
@@ -84,7 +100,7 @@ workflows:
             CODE_SIGN_IDENTITY='' \
             VALIDATE_PRODUCT=YES \
             build 2>&1 | tee build.log
-      - name: Package IPA artifact
+      - name: Package and verify unsigned IPA
         script: |
           set -euo pipefail
           APP_PATH=$(find build-clean/Build/Products -maxdepth 3 -type d -name '*.app' | head -n 1)
@@ -98,16 +114,17 @@ workflows:
           echo "BUILD_NUMBER=$BUILD_NUMBER"
           test -n "$EXECUTABLE"
           test -f "$APP_PATH/$EXECUTABLE"
-          wc -c "$APP_PATH/$EXECUTABLE"
+          test "$VERSION" = '2.0'
+          test "$BUILD_NUMBER" = '8.12'
           for resource in \
-            'HS GIRAFA.3105' \
             'HS CEARENSE.3105' \
+            'HS GIRAFA.3105' \
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
             'TEST NEW AIMBOT V1.3105' \
             '144 FPS FFTH.3105'; do
-            test -f "$APP_PATH/$resource" || {
-              echo "ERROR: missing bundled resource: $resource" >&2
+            test -f "$APP_PATH/OfficialPatches/$resource" || {
+              echo "ERROR: missing bundled resource: OfficialPatches/$resource" >&2
               exit 1
             }
             echo "bundled resource: $resource"
@@ -115,9 +132,10 @@ workflows:
           mkdir -p artifacts/Payload
           cp -R "$APP_PATH" artifacts/Payload/
           test -f "artifacts/Payload/$(basename "$APP_PATH")/Info.plist"
-          (cd artifacts && zip -qry BYPASS7_PROXY_FIXED.ipa Payload)
+          (cd artifacts && zip -qry BYPASS7_3105_V2_UNSIGNED.ipa Payload)
+          unzip -tq artifacts/BYPASS7_3105_V2_UNSIGNED.ipa
     artifacts:
-      - artifacts/BYPASS7_PROXY_FIXED.ipa
+      - artifacts/BYPASS7_3105_V2_UNSIGNED.ipa
       - build-clean/Build/Products/**/*.app
       - build-clean/Build/Products/**/*.dSYM
       - clean.log
