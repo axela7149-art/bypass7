@@ -1,159 +1,6 @@
-import SwiftUI
-import UIKit
-
-struct LoginView: View {
-    @ObservedObject var viewModel: AuthenticationViewModel
-    @FocusState private var isKeyFieldFocused: Bool
-    @State private var contentVisible = false
-
-    private let accent = AppTheme.accent
-
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [
-                        accent.opacity(0.22),
-                        Color.black.opacity(0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 180)
-                Spacer()
-            }
-            .ignoresSafeArea()
-
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 18) {
-                    Spacer(minLength: 28)
-
-                    ZStack {
-                        Circle()
-                            .fill(AppTheme.accentSoft)
-                            .frame(width: 96, height: 96)
-                        AppLogo(size: 76)
-                    }
-                    .accessibilityHidden(true)
-
-                    Text("BYPASS7 PROXY")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Key")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(accent)
-                        SecureField("Digite sua key", text: $viewModel.enteredKey)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .focused($isKeyFieldFocused)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(AppTheme.surface)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(isKeyFieldFocused ? accent.opacity(0.9) : AppTheme.accentBorder, lineWidth: 1)
-                            )
-                            .foregroundStyle(.white)
-                            .tint(accent)
-                            .onSubmit { submit() }
-                    }
-                    .padding(.horizontal, 8)
-
-                    Button(action: submit) {
-                        Group {
-                            if viewModel.isLoading {
-                                HStack(spacing: 10) {
-                                    ProgressView()
-                                        .tint(.white)
-                                    Text("Validando...")
-                                }
-                            } else if viewModel.isRevalidating {
-                                HStack(spacing: 10) {
-                                    ProgressView()
-                                        .tint(.white)
-                                    Text("Revalidando...")
-                                }
-                            } else {
-                                Text("Entrar")
-                            }
-                        }
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(accent, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .disabled(viewModel.isLoading || viewModel.isRevalidating)
-                    .buttonStyle(AppPressableButtonStyle())
-                    .padding(.horizontal, 8)
-
-                    if viewModel.showError {
-                        Text(viewModel.errorMessage)
-                            .font(.subheadline)
-                            .foregroundStyle(.red)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 16)
-                    }
-
-                    if let discordURL = URL(string: "https://discord.gg/bypass7proxys") {
-                        Link(destination: discordURL) {
-                            Label("Discord BYPASS7 PROXY", systemImage: "bubble.left.and.bubble.right.fill")
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(AppTheme.accent)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 11)
-                                .background(
-                                    AppTheme.accent.opacity(0.10),
-                                    in: RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                )
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                        .strokeBorder(AppTheme.accentBorder, lineWidth: 1)
-                                }
-                        }
-                        .accessibilityLabel("Discord BYPASS7 PROXY")
-                        .padding(.horizontal, 8)
-                    }
-
-                    Spacer(minLength: 28)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 28)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .opacity(contentVisible ? 1 : 0)
-            .offset(y: contentVisible ? 0 : 8)
-        }
-        .preferredColorScheme(.dark)
-        .onTapGesture {
-            isKeyFieldFocused = false
-        }
-        .onAppear {
-            withAnimation(.easeOut(duration: AppTheme.motionDuration)) {
-                contentVisible = true
-            }
-        }
-    }
-
-    private func submit() {
-        guard !viewModel.isLoading else { return }
-        Task { await viewModel.login() }
-    }
-}
-
-/// The five redesigned tabs. Selection is kept local to `ContentView` so the
-/// shared `AppSection` / `AppTabNavigationState` navigation layer stays intact.
+/// The two remaining app tabs. Selection stays local to `ContentView`.
 private enum StudioTab: String, CaseIterable, Identifiable {
     case aims
-    case esp
-    case chams
-    case textures
     case home
 
     var id: String { rawValue }
@@ -161,9 +8,6 @@ private enum StudioTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .aims: return "Aims"
-        case .esp: return "Esp"
-        case .chams: return "Chams"
-        case .textures: return "Texturas"
         case .home: return "Home"
         }
     }
@@ -171,9 +15,6 @@ private enum StudioTab: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .aims: return "scope"
-        case .esp: return "eye.fill"
-        case .chams: return "paintpalette.fill"
-        case .textures: return "square.stack.3d.up.fill"
         case .home: return "house.fill"
         }
     }
@@ -216,13 +57,7 @@ struct ContentView: View {
                     case .home:
                         DashboardView()
                     case .aims:
-                        AimsTabView()
-                    case .esp:
-                        EspTabView()
-                    case .chams:
-                        ChamsTabView()
-                    case .textures:
-                        TexturasTabView()
+                        PatchProjectsView()
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -362,207 +197,6 @@ private struct GameStatusPill: View {
     }
 }
 
-/// Visual-only "Esp" tab. Clean placeholder body.
-private struct EspTabView: View {
-    var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
-                GameStatusPill()
-
-                Text("Em breve colocaremos")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 64)
-            }
-            .padding(.horizontal, AppTheme.pageInset)
-            .padding(.top, 16)
-            .padding(.bottom, 28)
-        }
-    }
-}
-
-/// Visual-only "Texturas" tab. Prepared grid of placeholder cards for future
-/// textures, with no logic wired yet.
-private struct TexturasTabView: View {
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
-
-    var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
-                GameStatusPill()
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("TEXTURAS")
-                        .font(.subheadline.weight(.bold))
-                        .kerning(0.6)
-                        .foregroundStyle(.primary)
-
-                    AppCard(padding: 14) {
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ForEach(0..<6, id: \.self) { _ in
-                                placeholderCard
-                            }
-                        }
-                    }
-                }
-
-                Text("Em breve colocaremos novas texturas.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 4)
-            }
-            .padding(.horizontal, AppTheme.pageInset)
-            .padding(.top, 16)
-            .padding(.bottom, 28)
-        }
-    }
-
-    private var placeholderCard: some View {
-        VStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(
-                            AppTheme.surfaceBorder,
-                            style: StrokeStyle(lineWidth: 1, dash: [5, 4])
-                        )
-                )
-                .overlay(
-                    Image(systemName: "photo.on.rectangle.angled")
-                        .font(.system(size: 22, weight: .light))
-                        .foregroundStyle(.secondary)
-                )
-                .aspectRatio(1, contentMode: .fit)
-
-            Text("Textura")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-/// Visual-only "Chams" tab. Single-select color hologram picker, no logic wired.
-private struct ChamsTabView: View {
-    private enum ColorOption: String, CaseIterable, Hashable, Identifiable {
-        case amarelo
-        case vermelho
-        case roxo
-        case laranja
-        case preto
-        case branco
-
-        var id: String { rawValue }
-
-        var title: String {
-            switch self {
-            case .amarelo: return "AMARELO"
-            case .vermelho: return "VERMELHO"
-            case .roxo: return "ROXO"
-            case .laranja: return "LARANJA"
-            case .preto: return "PRETO"
-            case .branco: return "BRANCO"
-            }
-        }
-
-        var subtitle: String {
-            switch self {
-            case .amarelo: return "Contorno holográfico amarelo nas armas"
-            case .vermelho: return "Contorno holográfico vermelho nas armas"
-            case .roxo: return "Contorno holográfico roxo nas armas"
-            case .laranja: return "Contorno holográfico laranja nas armas"
-            case .preto: return "Contorno holográfico preto nas armas"
-            case .branco: return "Contorno holográfico branco nas armas"
-            }
-        }
-
-        var swatch: Color {
-            switch self {
-            case .amarelo: return Color(red: 1.00, green: 0.84, blue: 0.00)
-            case .vermelho: return Color(red: 0.92, green: 0.20, blue: 0.20)
-            case .roxo: return Color(red: 0.60, green: 0.30, blue: 0.96)
-            case .laranja: return Color(red: 1.00, green: 0.55, blue: 0.10)
-            case .preto: return Color(white: 0.12)
-            case .branco: return Color(white: 0.98)
-            }
-        }
-
-        var symbol: String { "circle.fill" }
-    }
-
-    @State private var selectedColor: ColorOption?
-
-    var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
-                GameStatusPill()
-
-                AppCard(padding: 16) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 10) {
-                            AppRowIcon(systemName: "paintpalette.fill", tint: AppTheme.accent, frameSize: 36)
-                            Text("HOLOGRAMA ARMAS")
-                                .font(.headline.weight(.bold))
-                                .foregroundStyle(.primary)
-                        }
-
-                        Text("Selecione uma cor para aplicar no jogo escolhido. Mantenha apenas uma opção ativa por vez.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("CORES DISPONÍVEIS")
-                        .font(.subheadline.weight(.bold))
-                        .kerning(0.6)
-                        .foregroundStyle(.primary)
-
-                    AppCard(padding: 4) {
-                        VStack(spacing: 0) {
-                            ForEach(ColorOption.allCases) { option in
-                                if option != ColorOption.allCases.first {
-                                    Rectangle()
-                                        .fill(AppTheme.surfaceBorder)
-                                        .frame(height: 0.5)
-                                }
-                                AppToggleRow(
-                                    title: option.title,
-                                    subtitle: option.subtitle,
-                                    systemImage: option.symbol,
-                                    iconTint: option.swatch,
-                                    isOn: colorBinding(option)
-                                )
-                                .padding(.horizontal, 12)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, AppTheme.pageInset)
-            .padding(.top, 16)
-            .padding(.bottom, 28)
-        }
-    }
-
-    private func colorBinding(_ option: ColorOption) -> Binding<Bool> {
-        Binding(
-            get: { selectedColor == option },
-            set: { isOn in
-                withAnimation(.easeInOut(duration: AppTheme.motionDuration)) {
-                    selectedColor = isOn ? option : nil
-                }
-            }
-        )
-    }
-}
-
 /// Visual-only "Aims" tab. No injection logic is wired here yet.
 private struct AimsTabView: View {
     private enum FileKind: String, CaseIterable, Hashable {
@@ -578,10 +212,10 @@ private struct AimsTabView: View {
     }
 
     @State private var fileKind: FileKind = .avatar
-    @State private var hsAlto = false
-    @State private var hsPescoco = false
+    @State private var hsGirafa = false
+    @State private var hsCearense = false
     @State private var hsPescocoAntena = false
-    @State private var hsAltoPescoco = false
+    @State private var hsPeitoAntena = false
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -641,20 +275,20 @@ private struct AimsTabView: View {
             AppCard(padding: 4) {
                 VStack(spacing: 0) {
                     AppToggleRow(
-                        title: "HS ALTO",
-                        subtitle: "Aumenta a altura da cabeça para facilitar a mira",
-                        systemImage: "arrow.up.to.line",
-                        isOn: $hsAlto
+                        title: "HS GIRAFA",
+                        subtitle: "Função HS Girafa",
+                        systemImage: "list.bullet",
+                        isOn: $hsGirafa
                     )
                     .padding(.horizontal, 12)
 
                     separator
 
                     AppToggleRow(
-                        title: "HS PESCOÇO",
-                        subtitle: "Mira travada na região do pescoço",
+                        title: "HS CEARENSE",
+                        subtitle: "Função HS Cearense",
                         systemImage: "scope",
-                        isOn: $hsPescoco
+                        isOn: $hsCearense
                     )
                     .padding(.horizontal, 12)
 
@@ -671,10 +305,10 @@ private struct AimsTabView: View {
                     separator
 
                     AppToggleRow(
-                        title: "HS ALTO + PESCOÇO",
-                        subtitle: "Combina HS alto com a trava de pescoço",
-                        systemImage: "arrow.up.and.down",
-                        isOn: $hsAltoPescoco
+                        title: "HS PEITO + ANTENA",
+                        subtitle: "Função de peito com antena",
+                        systemImage: "antenna.radiowaves.left.and.right",
+                        isOn: $hsPeitoAntena
                     )
                     .padding(.horizontal, 12)
                 }
