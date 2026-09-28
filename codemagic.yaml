@@ -29,7 +29,7 @@ workflows:
           grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
-          if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|MENU TESTE' \
+          if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|HS GIRAFA' \
             ThreeOneOSFive/ContentView.swift \
             ThreeOneOSFive/views/PatchProjectsView.swift; then
             echo "ERROR: removed tabs or features are still present" >&2
