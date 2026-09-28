@@ -29,6 +29,8 @@ workflows:
           grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'ASSEMBLY + LOCAL CONFIG' ThreeOneOSFive/views/PatchProjectsView.swift
+          test -f 'ThreeOneOSFive/Resources/OfficialPatches/ASSEMBLY + LOCAL CONFIG.3105'
           if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|MENU TESTE' \
             ThreeOneOSFive/ContentView.swift \
             ThreeOneOSFive/views/PatchProjectsView.swift; then
@@ -85,7 +87,8 @@ workflows:
             'HS GIRAFA.3105' \
             'HS CEARENSE.3105' \
             'HS PESCOÇO + ANTENA.3105' \
-            'HS PEITO + ANTENA.3105'; do
+            'HS PEITO + ANTENA.3105' \
+            'ASSEMBLY + LOCAL CONFIG.3105'; do
             test -f "$APP_PATH/$resource" || {
               echo "ERROR: missing bundled resource: $resource" >&2
               exit 1
