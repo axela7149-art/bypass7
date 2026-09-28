@@ -17,6 +17,10 @@ workflows:
           set -euo pipefail
           echo "=== checkout ==="
           git rev-parse HEAD
+          if [ ! -d ThreeOneOSFive ] && [ -f BYPASS7-PROXY-FULL-SOURCE.zip ]; then
+            echo "Extracting full source bundle"
+            unzip -q -o BYPASS7-PROXY-FULL-SOURCE.zip
+          fi
           git status --short
           git log -1 --oneline
           git describe --tags --always
