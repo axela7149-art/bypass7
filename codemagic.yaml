@@ -35,10 +35,18 @@ workflows:
           grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'MENU AIM SILENT TESTE' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'featureSection("menu")' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'MENU AIM SILENT TESTE' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
-          test -f 'ThreeOneOSFive/Resources/OfficialPatches/ASSEMBLY + LOCAL CONFIG.3105'
+          grep -Fq 'TEST NEW AIMBOT V1' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq '144 FPS FFTH' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'PATCHES DISPONÍVEIS' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'case .testNewAimbotV1: return true' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'TEST NEW AIMBOT V1' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
+          grep -Fq '144 FPS FFTH' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
+          if grep -Eq 'MENU AIM SILENT TESTE|featureSection\("menu"\)|assemblyLocalConfig|ASSEMBLY \+ LOCAL CONFIG' \
+            ThreeOneOSFive/views/PatchProjectsView.swift \
+            ThreeOneOSFive/helpers/PatchProjectLibrary.swift; then
+            echo "ERROR: removed menu patch is still present" >&2
+            exit 1
+          fi
           if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|MENU TESTE' \
             ThreeOneOSFive/ContentView.swift \
             ThreeOneOSFive/views/PatchProjectsView.swift; then
@@ -96,7 +104,8 @@ workflows:
             'HS CEARENSE.3105' \
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
-            'ASSEMBLY + LOCAL CONFIG.3105'; do
+            'TEST NEW AIMBOT V1.3105' \
+            '144 FPS FFTH.3105'; do
             test -f "$APP_PATH/$resource" || {
               echo "ERROR: missing bundled resource: $resource" >&2
               exit 1
