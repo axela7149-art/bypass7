@@ -6,7 +6,13 @@ workflows:
       xcode: latest
     triggering:
       events:
+        - push
+        - pull_request
         - tag
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
       tag_patterns:
         - pattern: build-*
           include: true
