@@ -6,7 +6,13 @@ workflows:
       xcode: latest
     triggering:
       events:
+        - push
+        - pull_request
         - tag
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
       tag_patterns:
         - pattern: build-*
           include: true
@@ -25,10 +31,18 @@ workflows:
           git log -1 --oneline
           git describe --tags --always
           test -f ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'MENU TESTE' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'HS GIRAFA' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
           grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
+          grep -Fq 'ASSEMBLY + LOCAL CONFIG' ThreeOneOSFive/views/PatchProjectsView.swift
+          test -f 'ThreeOneOSFive/Resources/OfficialPatches/ASSEMBLY + LOCAL CONFIG.3105'
+          if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|MENU TESTE' \
+            ThreeOneOSFive/ContentView.swift \
+            ThreeOneOSFive/views/PatchProjectsView.swift; then
+            echo "ERROR: removed tabs or features are still present" >&2
+            exit 1
+          fi
           echo "Source validation passed."
       - name: Clean previous outputs
         script: |
@@ -76,10 +90,11 @@ workflows:
           test -f "$APP_PATH/$EXECUTABLE"
           wc -c "$APP_PATH/$EXECUTABLE"
           for resource in \
-            'MENU TESTE-USE POR CONTA E RISCO-.3105' \
+            'HS GIRAFA.3105' \
             'HS CEARENSE.3105' \
             'HS PESCOÇO + ANTENA.3105' \
-            'HS PEITO + ANTENA.3105'; do
+            'HS PEITO + ANTENA.3105' \
+            'ASSEMBLY + LOCAL CONFIG.3105'; do
             test -f "$APP_PATH/$resource" || {
               echo "ERROR: missing bundled resource: $resource" >&2
               exit 1
