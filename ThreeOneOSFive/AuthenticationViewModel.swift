@@ -29,6 +29,7 @@ class AuthenticationViewModel: ObservableObject {
     }
 
     private let endpoint = URL(string: "https://kaygen-final.vercel.app/api/public/validate")!
+    private let applicationID = "cc9389c9-f2b2-412b-999c-f7bc3ad30a1b"
 
     init() {
         // A persisted flag is never trusted on its own: a saved license must be
@@ -73,7 +74,7 @@ class AuthenticationViewModel: ObservableObject {
         let body: [String: Any] = [
             "key": trimmed,
             "hwid": deviceHWID,
-            "platform": "ios"
+            "application_id": applicationID
         ]
 
         var request = URLRequest(url: endpoint)
@@ -81,7 +82,7 @@ class AuthenticationViewModel: ObservableObject {
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 20
-        log("[AUTH] POST url=\(endpoint.absoluteString) bodyFields=key,hwid,platform")
+        log("[AUTH] POST url=\(endpoint.absoluteString) bodyFields=key,hwid,application_id")
 
         let data: Data
         let response: URLResponse
@@ -106,7 +107,7 @@ class AuthenticationViewModel: ObservableObject {
 
         switch http.statusCode {
         case 200...299:
-            handleSuccess(payload, licenseKey: trimmed)
+            handleSuccess(licenseKey: trimmed)
         case 400:
             let raw = Self.stringFromPayload(payload, keys: ["error", "message"])
             errorMessage = raw.isEmpty ? "Requisição inválida. Verifique sua key." : raw
@@ -143,27 +144,9 @@ class AuthenticationViewModel: ObservableObject {
         }
     }
 
-    private func handleSuccess(_ payload: [String: Any], licenseKey: String) {
-        let status = payload["status"] as? String
-        let valid = Self.isJSONTrue(payload["valid"])
-
-        guard status == "success", valid else {
-            if status == "hwid_mismatch" {
-                errorMessage = "HWID incompatível. Esta key foi gerada para outro dispositivo."
-                showError = true
-                enteredKey = ""
-                return
-            }
-            if status == "error" {
-                errorMessage = "Key inválida. Verifique e tente novamente."
-                showError = true
-                enteredKey = ""
-                return
-            }
-            denyLogin(with: payload)
-            return
-        }
-
+    /// Kaygen reports successful validation with HTTP 2xx; its documented
+    /// response contains status and expires_at, without requiring `valid`.
+    private func handleSuccess(licenseKey: String) {
         isAuthenticated = true
         hasValidSession = true
         persistLicenseKey(licenseKey)
@@ -196,7 +179,7 @@ class AuthenticationViewModel: ObservableObject {
         let body: [String: Any] = [
             "key": key,
             "hwid": deviceHWID,
-            "platform": "ios"
+            "application_id": applicationID
         ]
 
         var request = URLRequest(url: endpoint)
@@ -204,7 +187,7 @@ class AuthenticationViewModel: ObservableObject {
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 20
-        log("[AUTH] revalidation POST url=\(endpoint.absoluteString) bodyFields=key,hwid,platform")
+        log("[AUTH] revalidation POST url=\(endpoint.absoluteString) bodyFields=key,hwid,application_id")
 
         let data: Data
         let response: URLResponse
@@ -223,10 +206,10 @@ class AuthenticationViewModel: ObservableObject {
         log("[AUTH] revalidation http_status=\(http.statusCode)")
         let payload = Self.parseJSONObject(data)
         if (200...299).contains(http.statusCode) {
-            if (payload["status"] as? String) == "success", Self.isJSONTrue(payload["valid"]) {
-                return .valid
-            }
-            return .denied(denialReason(from: payload))
+            return .valid
+        }
+        if http.statusCode == 429 || (500...599).contains(http.statusCode) {
+            return .offline(denialMessage(for: http.statusCode, payload: payload))
         }
         return .denied(denialMessage(for: http.statusCode, payload: payload))
     }
