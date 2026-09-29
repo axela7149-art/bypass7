@@ -132,7 +132,7 @@ workflows:
             'HS GIRAFA.3105' \
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
-            'TEST NEW AIMBOT V1.3105' \
+            'MENU FULL FUNCTION.3105' \
             '144 FPS FFTH.3105'; do
             test -f "$APP_PATH/OfficialPatches/$resource" || {
               echo "ERROR: missing bundled resource: OfficialPatches/$resource" >&2
