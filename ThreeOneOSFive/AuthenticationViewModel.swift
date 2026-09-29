@@ -28,7 +28,7 @@ class AuthenticationViewModel: ObservableObject {
         set { UserDefaults.standard.set(newValue, forKey: StorageKeys.isLoggedIn.rawValue) }
     }
 
-    private let endpoint = URL(string: "https://ipakeydash-swz9qhsx.manus.space/v")!
+    private let endpoint = URL(string: "https://kaygen-final.vercel.app/api/public/validate")!
 
     init() {
         // A persisted flag is never trusted on its own: a saved license must be
