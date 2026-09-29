@@ -35,6 +35,10 @@ workflows:
           grep -Fq 'AuthenticatedRootView(viewModel: authViewModel)' ThreeOneOSFive/App.swift
           grep -Fq 'seedBundledPatchesIfNeeded' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
           grep -Fq 'seedBundledPatchesIfNeeded()' ThreeOneOSFive/helpers/PatchProjectStore.swift
+          grep -Fq 'displayName: "MENU FULL FUNCTION"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: menuFullFunctionID,' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'legacyAimbotPackageID' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'synchronizesWorkspaceBeforeApply: false' ThreeOneOSFive/ContentView.swift
           python3 - <<'PY'
           from hashlib import sha256
           from pathlib import Path
@@ -45,7 +49,7 @@ workflows:
               'HS GIRAFA.3105',
               'HS PESCOÇO + ANTENA.3105',
               'HS PEITO + ANTENA.3105',
-              'TEST NEW AIMBOT V1.3105',
+              'MENU FULL FUNCTION.3105',
               '144 FPS FFTH.3105',
           }
           actual = {p.name for p in root.glob('*.3105')}
@@ -70,9 +74,9 @@ workflows:
               print(f"validated envelope: {path.name} (schema {env['schemaVersion']})")
           if len(package_ids) != len(expected):
               raise SystemExit(f'Expected {len(expected)} unique package IDs, found {len(package_ids)}')
-          aimbot = (root / 'TEST NEW AIMBOT V1.3105').read_bytes()
-          if len(aimbot) < 28:
-              raise SystemExit('Aimbot package is truncated')
+          menu_package = (root / 'MENU FULL FUNCTION.3105').read_bytes()
+          if len(menu_package) < 28:
+              raise SystemExit('MENU FULL FUNCTION package is truncated')
           if (root / 'ASSEMBLY + LOCAL CONFIG.3105').exists():
               raise SystemExit('Removed Assembly + Local Config package is still bundled')
           PY
