@@ -45,7 +45,13 @@ workflows:
           grep -Fq 'repeatForever(autoreverses: false)' ThreeOneOSFive/ContentView.swift
           grep -Fq 'accessibilityReduceMotion' ThreeOneOSFive/ContentView.swift
           grep -Fq 'Text("macielfilza")' ThreeOneOSFive/ContentView.swift
-          grep -Fq 'static let accent = Color.primary' ThreeOneOSFive/views/DesignSystem.swift
+          grep -Fq 'static let accent = Color(red: 0.93, green: 0.0, blue: 0.0)' ThreeOneOSFive/views/DesignSystem.swift
+          grep -Fq 'static let onAccent = Color.black' ThreeOneOSFive/views/DesignSystem.swift
+          grep -Fq '.red' ThreeOneOSFive/ContentView.swift
+          grep -Fq '.green' ThreeOneOSFive/ContentView.swift
+          grep -Fq '.orange' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'Label("Discord"' ThreeOneOSFive/views/LoginView.swift
+          ! grep -Fq 'discord.gg/' ThreeOneOSFive/views/LoginView.swift
           ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/views/LoginView.swift
           test ! -e ThreeOneOSFive/Assets.xcassets/Bypass7Logo.imageset
