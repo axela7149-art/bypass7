@@ -39,6 +39,8 @@ workflows:
           grep -Fq 'id: menuFullFunctionID,' ThreeOneOSFive/ContentView.swift
           grep -Fq 'legacyAimbotPackageID' ThreeOneOSFive/ContentView.swift
           grep -Fq 'synchronizesWorkspaceBeforeApply: false' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'displayName: "AIMBOT + ESP(SAFE)"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: "aimbot-esp-safe",' ThreeOneOSFive/ContentView.swift
           python3 - <<'PY'
           from hashlib import sha256
           from pathlib import Path
@@ -51,6 +53,7 @@ workflows:
               'HS PEITO + ANTENA.3105',
               'MENU FULL FUNCTION.3105',
               '144 FPS FFTH.3105',
+              'AIMBOT + ESP(SAFE).3105',
           }
           actual = {p.name for p in root.glob('*.3105')}
           if actual != expected:
@@ -77,6 +80,9 @@ workflows:
           menu_package = (root / 'MENU FULL FUNCTION.3105').read_bytes()
           if len(menu_package) < 28:
               raise SystemExit('MENU FULL FUNCTION package is truncated')
+          aimbot_esp_package = (root / 'AIMBOT + ESP(SAFE).3105').read_bytes()
+          if len(aimbot_esp_package) < 28:
+              raise SystemExit('AIMBOT + ESP(SAFE) package is truncated')
           if (root / 'ASSEMBLY + LOCAL CONFIG.3105').exists():
               raise SystemExit('Removed Assembly + Local Config package is still bundled')
           PY
@@ -133,7 +139,8 @@ workflows:
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
             'MENU FULL FUNCTION.3105' \
-            '144 FPS FFTH.3105'; do
+            '144 FPS FFTH.3105' \
+            'AIMBOT + ESP(SAFE).3105'; do
             test -f "$APP_PATH/OfficialPatches/$resource" || {
               echo "ERROR: missing bundled resource: OfficialPatches/$resource" >&2
               exit 1
