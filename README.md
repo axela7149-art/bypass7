@@ -103,7 +103,7 @@ Do not publish logs, app containers, cookies, account databases, or patch payloa
 
 3105 is developed and designed by [YangJiii](https://x.com/duongduong0908).
 
-**BYPASS7 PROXY** is maintained as a continuation of the [3105](https://github.com/YangJiiii/3105) upstream project and keeps 3105's original license, notices, and attribution intact. The Injetar (Patches) tab ships two official bundled preset packages (`144FPS.@Bypass7proxy.3105` and `BYPASS7PROXY  x  HS PESCOÇO MAX.3105`) embedded as read-only bundled resources: they are applied through the normal patch flow but cannot be exported, shared, edited, or deleted.
+**macielfilza** is a customized build based on the [3105](https://github.com/YangJiiii/3105) upstream project and preserves its original license, notices, and attribution. This variant uses Kaygen key validation and bundles seven `.3105` patch resources under `ThreeOneOSFive/Resources/OfficialPatches/`.
 
 Special thanks to [0xjohnny](https://x.com/0xjohnny) for [FilzaSlop](https://github.com/0xjohnnydev/FilzaSlop) and related research:
 

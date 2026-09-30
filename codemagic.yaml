@@ -1,6 +1,6 @@
 workflows:
   ios-build:
-    name: BYPASS7 PROXY iOS build
+    name: macielfilza iOS build
     instance_type: mac_mini_m2
     environment:
       xcode: latest
@@ -18,7 +18,7 @@ workflows:
           include: true
       cancel_previous_builds: true
     scripts:
-      - name: Validate checkout and source
+      - name: Validate source bundle and patch resources
         script: |
           set -euo pipefail
           echo "=== checkout ==="
@@ -27,25 +27,83 @@ workflows:
             echo "Extracting full source bundle"
             unzip -q -o BYPASS7-PROXY-FULL-SOURCE.zip
           fi
-          git status --short
-          git log -1 --oneline
-          git describe --tags --always
-          test -f ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS GIRAFA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS CEARENSE' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS PESCOÇO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'HS PEITO + ANTENA' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'MENU AIM SILENT TESTE' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'featureSection("menu")' ThreeOneOSFive/views/PatchProjectsView.swift
-          grep -Fq 'MENU AIM SILENT TESTE' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
-          test -f 'ThreeOneOSFive/Resources/OfficialPatches/ASSEMBLY + LOCAL CONFIG.3105'
-          if grep -Eq 'EspTabView|ChamsTabView|TexturasTabView|HOLOGRAMA ARMAS|TEXTURAS|TexturePreset|TextureApplicationError|MENU TESTE' \
-            ThreeOneOSFive/ContentView.swift \
-            ThreeOneOSFive/views/PatchProjectsView.swift; then
-            echo "ERROR: removed tabs or features are still present" >&2
-            exit 1
-          fi
-          echo "Source validation passed."
+          test -f ThreeOneOSFive.xcodeproj/project.pbxproj
+          test -f ThreeOneOSFive/App.swift
+          test -f ThreeOneOSFive/AuthenticationViewModel.swift
+          test -f ThreeOneOSFive/views/LoginView.swift
+          test -f ThreeOneOSFive/helpers/PatchPackageCodec.swift
+          grep -Fq 'AuthenticatedRootView(viewModel: authViewModel)' ThreeOneOSFive/App.swift
+          grep -Fq 'seedBundledPatchesIfNeeded' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
+          grep -Fq 'seedBundledPatchesIfNeeded()' ThreeOneOSFive/helpers/PatchProjectStore.swift
+          grep -Fq 'displayName: "MENU FULL FUNCTION"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: menuFullFunctionID,' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'legacyAimbotPackageID' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'synchronizesWorkspaceBeforeApply: false' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'displayName: "AIMBOT + ESP(SAFE)"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: "aimbot-esp-safe",' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'private var titleGradient: LinearGradient' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'repeatForever(autoreverses: false)' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'accessibilityReduceMotion' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Text("macielfilza")' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'static let accent = Color(red: 0.93, green: 0.0, blue: 0.0)' ThreeOneOSFive/views/DesignSystem.swift
+          grep -Fq 'static let onAccent = Color.black' ThreeOneOSFive/views/DesignSystem.swift
+          grep -Fq '.red' ThreeOneOSFive/ContentView.swift
+          grep -Fq '.green' ThreeOneOSFive/ContentView.swift
+          grep -Fq '.orange' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'Label("Discord"' ThreeOneOSFive/views/LoginView.swift
+          ! grep -Fq 'discord.gg/' ThreeOneOSFive/views/LoginView.swift
+          ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/views/LoginView.swift
+          test ! -e ThreeOneOSFive/Assets.xcassets/Bypass7Logo.imageset
+          grep -Fq 'Os sete patches incluídos' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Label("Abrir patches", systemImage: "scope")' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'Abrir biblioteca de patches' ThreeOneOSFive/ContentView.swift
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          from plistlib import loads
+          root = Path('ThreeOneOSFive/Resources/OfficialPatches')
+          expected = {
+              'HS CEARENSE.3105',
+              'HS GIRAFA.3105',
+              'HS PESCOÇO + ANTENA.3105',
+              'HS PEITO + ANTENA.3105',
+              'MENU FULL FUNCTION.3105',
+              '144 FPS FFTH.3105',
+              'AIMBOT + ESP(SAFE).3105',
+          }
+          actual = {p.name for p in root.glob('*.3105')}
+          if actual != expected:
+              raise SystemExit(f'Unexpected patch set: missing={expected-actual}, extra={actual-expected}')
+          package_ids = set()
+          for path in sorted(root.glob('*.3105')):
+              raw = path.read_bytes()
+              magic = b'3105PATCH\0'
+              if not raw.startswith(magic):
+                  raise SystemExit(f'Bad package signature: {path.name}')
+              env = loads(raw[len(magic):])
+              package_id = env.get('packageID')
+              if not isinstance(package_id, str) or package_id in package_ids:
+                  raise SystemExit(f'Missing or duplicate package ID: {path.name} ({package_id})')
+              package_ids.add(package_id)
+              if env['isPasswordProtected'] or not (1 <= env['schemaVersion'] <= 3):
+                  raise SystemExit(f'Unexpected package version/protection: {path.name}')
+              key = env.get('publicContentKey', b'')
+              if len(key) != 32 or sha256(key).digest() != env['keyFingerprint']:
+                  raise SystemExit(f'Invalid package key fingerprint: {path.name}')
+              print(f"validated envelope: {path.name} (schema {env['schemaVersion']})")
+          if len(package_ids) != len(expected):
+              raise SystemExit(f'Expected {len(expected)} unique package IDs, found {len(package_ids)}')
+          menu_package = (root / 'MENU FULL FUNCTION.3105').read_bytes()
+          if len(menu_package) < 28:
+              raise SystemExit('MENU FULL FUNCTION package is truncated')
+          aimbot_esp_package = (root / 'AIMBOT + ESP(SAFE).3105').read_bytes()
+          if len(aimbot_esp_package) < 28:
+              raise SystemExit('AIMBOT + ESP(SAFE) package is truncated')
+          if (root / 'ASSEMBLY + LOCAL CONFIG.3105').exists():
+              raise SystemExit('Removed Assembly + Local Config package is still bundled')
+          PY
+          echo "Source and patch envelope validation passed."
       - name: Clean previous outputs
         script: |
           set -euo pipefail
@@ -76,29 +134,35 @@ workflows:
             CODE_SIGN_IDENTITY='' \
             VALIDATE_PRODUCT=YES \
             build 2>&1 | tee build.log
-      - name: Package IPA artifact
+      - name: Package and verify unsigned IPA
         script: |
           set -euo pipefail
           APP_PATH=$(find build-clean/Build/Products -maxdepth 3 -type d -name '*.app' | head -n 1)
           test -n "$APP_PATH" && test -d "$APP_PATH"
           echo "APP_PATH=$APP_PATH"
+          DISPLAY_NAME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP_PATH/Info.plist")
           EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")
           VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Info.plist")
           BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PATH/Info.plist")
+          echo "DISPLAY_NAME=$DISPLAY_NAME"
           echo "EXECUTABLE=$EXECUTABLE"
           echo "VERSION=$VERSION"
           echo "BUILD_NUMBER=$BUILD_NUMBER"
+          test "$DISPLAY_NAME" = 'macielfilza'
           test -n "$EXECUTABLE"
           test -f "$APP_PATH/$EXECUTABLE"
-          wc -c "$APP_PATH/$EXECUTABLE"
+          test "$VERSION" = '2.0'
+          test "$BUILD_NUMBER" = '8.12'
           for resource in \
-            'HS GIRAFA.3105' \
             'HS CEARENSE.3105' \
+            'HS GIRAFA.3105' \
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
-            'ASSEMBLY + LOCAL CONFIG.3105'; do
-            test -f "$APP_PATH/$resource" || {
-              echo "ERROR: missing bundled resource: $resource" >&2
+            'MENU FULL FUNCTION.3105' \
+            '144 FPS FFTH.3105' \
+            'AIMBOT + ESP(SAFE).3105'; do
+            test -f "$APP_PATH/OfficialPatches/$resource" || {
+              echo "ERROR: missing bundled resource: OfficialPatches/$resource" >&2
               exit 1
             }
             echo "bundled resource: $resource"
@@ -106,9 +170,10 @@ workflows:
           mkdir -p artifacts/Payload
           cp -R "$APP_PATH" artifacts/Payload/
           test -f "artifacts/Payload/$(basename "$APP_PATH")/Info.plist"
-          (cd artifacts && zip -qry BYPASS7_PROXY_FIXED.ipa Payload)
+          (cd artifacts && zip -qry macielfilza.ipa Payload)
+          unzip -tq artifacts/macielfilza.ipa
     artifacts:
-      - artifacts/BYPASS7_PROXY_FIXED.ipa
+      - artifacts/macielfilza.ipa
       - build-clean/Build/Products/**/*.app
       - build-clean/Build/Products/**/*.dSYM
       - clean.log
