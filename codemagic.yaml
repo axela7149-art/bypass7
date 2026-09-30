@@ -41,6 +41,12 @@ workflows:
           grep -Fq 'synchronizesWorkspaceBeforeApply: false' ThreeOneOSFive/ContentView.swift
           grep -Fq 'displayName: "AIMBOT + ESP(SAFE)"' ThreeOneOSFive/ContentView.swift
           grep -Fq 'id: "aimbot-esp-safe",' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'private var titleGradient: LinearGradient' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'repeatForever(autoreverses: false)' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'accessibilityReduceMotion' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Os sete patches incluídos' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Label("Abrir patches", systemImage: "scope")' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'Abrir biblioteca de patches' ThreeOneOSFive/ContentView.swift
           python3 - <<'PY'
           from hashlib import sha256
           from pathlib import Path
