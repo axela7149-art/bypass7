@@ -1,4 +1,4 @@
-# BYPASS7-PROXY — Kaygen license validation
+# macielfilza — Kaygen license validation
 
 `ThreeOneOSFive/AuthenticationViewModel.swift` now uses the exact endpoint `https://kaygen-final.vercel.app/api/public/validate` and the published Kaygen request contract: `key`, `hwid`, and `application_id`.
 

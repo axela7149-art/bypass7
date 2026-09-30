@@ -1,6 +1,6 @@
 workflows:
   ios-build:
-    name: BYPASS7 3105 v2 iOS build
+    name: macielfilza iOS build
     instance_type: mac_mini_m2
     environment:
       xcode: latest
@@ -44,6 +44,11 @@ workflows:
           grep -Fq 'private var titleGradient: LinearGradient' ThreeOneOSFive/ContentView.swift
           grep -Fq 'repeatForever(autoreverses: false)' ThreeOneOSFive/ContentView.swift
           grep -Fq 'accessibilityReduceMotion' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Text("macielfilza")' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'static let accent = Color.primary' ThreeOneOSFive/views/DesignSystem.swift
+          ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/views/LoginView.swift
+          test ! -e ThreeOneOSFive/Assets.xcassets/Bypass7Logo.imageset
           grep -Fq 'Os sete patches incluídos' ThreeOneOSFive/ContentView.swift
           grep -Fq 'Label("Abrir patches", systemImage: "scope")' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'Abrir biblioteca de patches' ThreeOneOSFive/ContentView.swift
@@ -129,12 +134,15 @@ workflows:
           APP_PATH=$(find build-clean/Build/Products -maxdepth 3 -type d -name '*.app' | head -n 1)
           test -n "$APP_PATH" && test -d "$APP_PATH"
           echo "APP_PATH=$APP_PATH"
+          DISPLAY_NAME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP_PATH/Info.plist")
           EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")
           VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Info.plist")
           BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PATH/Info.plist")
+          echo "DISPLAY_NAME=$DISPLAY_NAME"
           echo "EXECUTABLE=$EXECUTABLE"
           echo "VERSION=$VERSION"
           echo "BUILD_NUMBER=$BUILD_NUMBER"
+          test "$DISPLAY_NAME" = 'macielfilza'
           test -n "$EXECUTABLE"
           test -f "$APP_PATH/$EXECUTABLE"
           test "$VERSION" = '2.0'
@@ -156,10 +164,10 @@ workflows:
           mkdir -p artifacts/Payload
           cp -R "$APP_PATH" artifacts/Payload/
           test -f "artifacts/Payload/$(basename "$APP_PATH")/Info.plist"
-          (cd artifacts && zip -qry BYPASS7_3105_V2_UNSIGNED.ipa Payload)
-          unzip -tq artifacts/BYPASS7_3105_V2_UNSIGNED.ipa
+          (cd artifacts && zip -qry macielfilza.ipa Payload)
+          unzip -tq artifacts/macielfilza.ipa
     artifacts:
-      - artifacts/BYPASS7_3105_V2_UNSIGNED.ipa
+      - artifacts/macielfilza.ipa
       - build-clean/Build/Products/**/*.app
       - build-clean/Build/Products/**/*.dSYM
       - clean.log
