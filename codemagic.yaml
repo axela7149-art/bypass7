@@ -35,9 +35,11 @@ workflows:
           grep -Fq 'AuthenticatedRootView(viewModel: authViewModel)' ThreeOneOSFive/App.swift
           grep -Fq 'seedBundledPatchesIfNeeded' ThreeOneOSFive/helpers/PatchProjectLibrary.swift
           grep -Fq 'seedBundledPatchesIfNeeded()' ThreeOneOSFive/helpers/PatchProjectStore.swift
-          grep -Fq 'displayName: "MENU FULL FUNCTION"' ThreeOneOSFive/ContentView.swift
-          grep -Fq 'id: menuFullFunctionID,' ThreeOneOSFive/ContentView.swift
-          grep -Fq 'legacyAimbotPackageID' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Text("CRIADOR MACIEL FILZA")' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'private struct CreatorBannerText: View' ThreeOneOSFive/ContentView.swift
+          grep -Fq '.yellow' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'MENU FULL FUNCTION' ThreeOneOSFive/ContentView.swift
+          ! grep -Fq 'menuFullFunctionID' ThreeOneOSFive/ContentView.swift
           grep -Fq 'synchronizesWorkspaceBeforeApply: false' ThreeOneOSFive/ContentView.swift
           grep -Fq 'displayName: "AIMBOT + ESP(SAFE)"' ThreeOneOSFive/ContentView.swift
           grep -Fq 'id: "aimbot-esp-safe",' ThreeOneOSFive/ContentView.swift
@@ -55,7 +57,7 @@ workflows:
           ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/views/LoginView.swift
           test ! -e ThreeOneOSFive/Assets.xcassets/Bypass7Logo.imageset
-          grep -Fq 'Os sete patches incluídos' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Os seis patches incluídos' ThreeOneOSFive/ContentView.swift
           grep -Fq 'Label("Abrir patches", systemImage: "scope")' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'Abrir biblioteca de patches' ThreeOneOSFive/ContentView.swift
           python3 - <<'PY'
@@ -68,7 +70,6 @@ workflows:
               'HS GIRAFA.3105',
               'HS PESCOÇO + ANTENA.3105',
               'HS PEITO + ANTENA.3105',
-              'MENU FULL FUNCTION.3105',
               '144 FPS FFTH.3105',
               'AIMBOT + ESP(SAFE).3105',
           }
@@ -94,9 +95,6 @@ workflows:
               print(f"validated envelope: {path.name} (schema {env['schemaVersion']})")
           if len(package_ids) != len(expected):
               raise SystemExit(f'Expected {len(expected)} unique package IDs, found {len(package_ids)}')
-          menu_package = (root / 'MENU FULL FUNCTION.3105').read_bytes()
-          if len(menu_package) < 28:
-              raise SystemExit('MENU FULL FUNCTION package is truncated')
           aimbot_esp_package = (root / 'AIMBOT + ESP(SAFE).3105').read_bytes()
           if len(aimbot_esp_package) < 28:
               raise SystemExit('AIMBOT + ESP(SAFE) package is truncated')
@@ -158,7 +156,6 @@ workflows:
             'HS GIRAFA.3105' \
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
-            'MENU FULL FUNCTION.3105' \
             '144 FPS FFTH.3105' \
             'AIMBOT + ESP(SAFE).3105'; do
             test -f "$APP_PATH/OfficialPatches/$resource" || {
