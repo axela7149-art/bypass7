@@ -43,6 +43,12 @@ workflows:
           grep -Fq 'synchronizesWorkspaceBeforeApply: false' ThreeOneOSFive/ContentView.swift
           grep -Fq 'displayName: "MENU ANTBAN BY MACIEL"' ThreeOneOSFive/ContentView.swift
           grep -Fq 'id: "menu-antban-by-maciel",' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'displayName: "AIMHEAD + ESP"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'displayName: "AIMNECK + ESP"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'displayName: "AIMSILENT + ESP"' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: "aimhead-esp",' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: "aimneck-esp",' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'id: "aimsilent-esp",' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'AIMBOT + ESP(SAFE)' ThreeOneOSFive/ContentView.swift
           grep -Fq 'https://www.mediafire.com/file/z21cnnphx4x0len/DNS+ANTBAN.bpf/file' ThreeOneOSFive/ContentView.swift
           grep -Fq 'https://apps.apple.com/app/id6785326793' ThreeOneOSFive/ContentView.swift
@@ -62,7 +68,7 @@ workflows:
           ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'Image("Bypass7Logo")' ThreeOneOSFive/views/LoginView.swift
           test ! -e ThreeOneOSFive/Assets.xcassets/Bypass7Logo.imageset
-          grep -Fq 'Os seis patches incluídos' ThreeOneOSFive/ContentView.swift
+          grep -Fq 'Os nove patches incluídos' ThreeOneOSFive/ContentView.swift
           grep -Fq 'Label("Abrir patches", systemImage: "scope")' ThreeOneOSFive/ContentView.swift
           ! grep -Fq 'Abrir biblioteca de patches' ThreeOneOSFive/ContentView.swift
           python3 - <<'PY'
@@ -77,6 +83,9 @@ workflows:
               'HS PEITO + ANTENA.3105',
               '144 FPS FFTH.3105',
               'MENU ANTBAN BY MACIEL.3105',
+              'AIMHEAD + ESP.3105',
+              'AIMNECK + ESP.3105',
+              'AIMSILENT + ESP.3105',
           }
           actual = {p.name for p in root.glob('*.3105')}
           if actual != expected:
@@ -162,7 +171,10 @@ workflows:
             'HS PESCOÇO + ANTENA.3105' \
             'HS PEITO + ANTENA.3105' \
             '144 FPS FFTH.3105' \
-            'MENU ANTBAN BY MACIEL.3105'; do
+            'MENU ANTBAN BY MACIEL.3105' \
+            'AIMHEAD + ESP.3105' \
+            'AIMNECK + ESP.3105' \
+            'AIMSILENT + ESP.3105'; do
             test -f "$APP_PATH/OfficialPatches/$resource" || {
               echo "ERROR: missing bundled resource: OfficialPatches/$resource" >&2
               exit 1
